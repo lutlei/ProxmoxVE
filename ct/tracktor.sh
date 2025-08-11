@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-source <(curl -s https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/misc/build.func)
+source <(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/misc/build.func)
 # Copyright (c) 2021-2025 community-scripts ORG
 # Author: CrazyWolf13
 # License: MIT | https://github.com/community-scripts/ProxmoxVE/raw/main/LICENSE
@@ -38,10 +38,11 @@ function update_script() {
     cp /opt/tracktor/app/server/.env /opt/tracktor.env
     msg_ok "Created Backup"
 
-    msg_info "Updating ${APP}"
-    rm -rf /opt/tracktor
+
     setup_nodejs
     fetch_and_deploy_gh_release "tracktor" "javedh-dev/tracktor"
+    
+    msg_info "Updating ${APP}"
     cd /opt/tracktor
     rm package-lock.json
     $STD npm install
