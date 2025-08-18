@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-source <(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVED/main/misc/build.func)
+source <(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/misc/build.func)
 # Copyright (c) 2021-2025 tteck
 # Author: tteck (tteckster)
 # License: MIT | https://github.com/community-scripts/ProxmoxVE/raw/main/LICENSE
@@ -63,14 +63,12 @@ function update_script() {
       msg_info "Migrating old Paperless-ngx installation to uv"
       rm -rf /opt/paperless/venv
       find /opt/paperless -name "__pycache__" -type d -exec rm -rf {} +
-
       declare -A PATCHES=(
         ["paperless-consumer.service"]="ExecStart=uv run -- python manage.py document_consumer"
         ["paperless-scheduler.service"]="ExecStart=uv run -- celery beat --loglevel INFO"
         ["paperless-task-queue.service"]="ExecStart=uv run -- celery worker --loglevel INFO"
         ["paperless-webserver.service"]="ExecStart=uv run -- granian --interface asgi --host 0.0.0.0 --port 8000 --ws paperless.asgi:application"
       )
-
       for svc in "${!PATCHES[@]}"; do
         path=$(systemctl show -p FragmentPath "$svc" | cut -d= -f2)
         if [[ -n "$path" && -f "$path" ]]; then
@@ -89,7 +87,6 @@ function update_script() {
       $STD uv run -- python manage.py migrate
       msg_ok "Paperless-ngx migration and update to ${RELEASE} completed"
     fi
-
     msg_info "Starting all Paperless-ngx Services"
     systemctl start paperless-consumer paperless-webserver paperless-scheduler paperless-task-queue
     sleep 1
