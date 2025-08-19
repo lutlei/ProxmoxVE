@@ -34,7 +34,7 @@
   "notes": [
     {
       "text": "Execute within an existing LXC Console (Debian / Ubuntu / Alpine supported)",
-      "type": "warning"
+      "type": "info"
     }
   ]
 }
