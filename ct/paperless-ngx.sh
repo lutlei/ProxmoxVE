@@ -63,16 +63,23 @@ function update_script() {
       msg_info "Migrating old Paperless-ngx installation to uv"
       rm -rf /opt/paperless/venv
       find /opt/paperless -name "__pycache__" -type d -exec rm -rf {} +
+
       declare -A PATCHES=(
         ["paperless-consumer.service"]="ExecStart=uv run -- python manage.py document_consumer"
-        ["paperless-scheduler.service"]="ExecStart=uv run -- celery beat --loglevel INFO"
-        ["paperless-task-queue.service"]="ExecStart=uv run -- celery worker --loglevel INFO"
-        ["paperless-webserver.service"]="ExecStart=uv run -- granian --interface asgi --host 0.0.0.0 --port 8000 --ws paperless.asgi:application"
+        ["paperless-scheduler.service"]="ExecStart=uv run -- celery --app paperless beat --loglevel INFO"
+        ["paperless-task-queue.service"]="ExecStart=uv run -- celery --app paperless worker --loglevel INFO"
+        ["paperless-webserver.service"]="ExecStart=uv run -- granian --interface asgi --ws \"paperless.asgi:application\""
       )
+
       for svc in "${!PATCHES[@]}"; do
         path=$(systemctl show -p FragmentPath "$svc" | cut -d= -f2)
         if [[ -n "$path" && -f "$path" ]]; then
           sed -i "s|^ExecStart=.*|${PATCHES[$svc]}|" "$path"
+          if [[ "$svc" == "paperless-webserver.service" ]]; then
+            grep -q "^Environment=GRANIAN_HOST=" "$path" || echo 'Environment=GRANIAN_HOST=::' >>"$path"
+            grep -q "^Environment=GRANIAN_PORT=" "$path" || echo 'Environment=GRANIAN_PORT=8000' >>"$path"
+            grep -q "^Environment=GRANIAN_WORKERS=" "$path" || echo 'Environment=GRANIAN_WORKERS=1' >>"$path"
+          fi
           msg_ok "Patched $svc"
         else
           msg_error "Service file for $svc not found!"
@@ -87,6 +94,7 @@ function update_script() {
       $STD uv run -- python manage.py migrate
       msg_ok "Paperless-ngx migration and update to ${RELEASE} completed"
     fi
+
     msg_info "Starting all Paperless-ngx Services"
     systemctl start paperless-consumer paperless-webserver paperless-scheduler paperless-task-queue
     sleep 1
