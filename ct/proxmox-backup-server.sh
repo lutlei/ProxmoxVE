@@ -4,14 +4,17 @@ source <(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxV
 # Author: tteck (tteckster)
 # License: MIT | https://github.com/community-scripts/ProxmoxVE/raw/main/LICENSE
 # Source: https://www.proxmox.com/en/proxmox-backup-server
+# 
+# Modified by: lutlei
+# Changes: Increased resources and ensure PBS v4 installation
 
 APP="Proxmox-Backup-Server"
 var_tags="${var_tags:-backup}"
-var_cpu="${var_cpu:-2}"
-var_ram="${var_ram:-2048}"
-var_disk="${var_disk:-10}"
-var_os="${var_os:-debian}"
-var_version="${var_version:-12}"
+var_cpu="${var_cpu:-4}"          # Increased from 2 to 4 for better backup performance
+var_ram="${var_ram:-4096}"       # Increased from 2048 to 4096 for handling large backups
+var_disk="${var_disk:-20}"       # Increased from 10 to 20 for more storage
+var_os="${var_os:-debian}"       # Keep as Debian (stable)
+var_version="${var_version:-12}" # Keep latest stable
 var_unprivileged="${var_unprivileged:-1}"
 
 header_info "$APP"
